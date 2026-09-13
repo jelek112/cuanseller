@@ -10,9 +10,10 @@ if (outputName === '.' || outputName === '') {
   await rm(root, { recursive: true, force: true });
   await mkdir(root, { recursive: true });
 }
-const domain = process.env.SITE_URL?.replace(/\/$/, '') || '';
+const domain = process.env.SITE_URL?.replace(/\/$/, '') || 'https://profitjualan.my.id';
 if (domain && (!/^https?:\/\/[^?#]+$/.test(domain))) throw new Error('SITE_URL harus berupa URL publik tanpa query atau fragmen.');
-const basePath = `/${(process.env.BASE_PATH || '').replace(/^\/+|\/+$/g, '')}${process.env.BASE_PATH ? '/' : ''}`;
+const configuredBase = (process.env.BASE_PATH || '').replace(/^\/+|\/+$/g, '');
+const basePath = configuredBase ? `/${configuredBase}/` : '/';
 const publicPath = value => `${basePath}${value}`.replace(/\/{2,}/g, '/');
 const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const url = c => `kalkulator-${c.id}.html`;
@@ -31,7 +32,7 @@ async function page(file, title, description, content, active = '', faqs = []) {
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(description)}"><meta name="theme-color" content="#193d32">${canonical ? `<link rel="canonical" href="${canonical}"><meta property="og:url" content="${canonical}">` : ''}<meta property="og:type" content="website"><meta property="og:locale" content="id_ID"><meta property="og:site_name" content="CuanSeller"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/style.css">${structured.length ? `<script type="application/ld+json">${JSON.stringify(structured).replaceAll('<','\\u003c')}</script>` : ''}<script src="assets/math.js" defer></script><script src="assets/app.js" defer></script></head>
 <body><a class="skip-link" href="#main">Langsung ke konten</a><header class="site-header"><div class="wrap header-inner"><a href="index.html" class="brand" aria-label="CuanSeller beranda">${logo}</a><button class="menu-toggle" aria-expanded="false" aria-controls="main-nav" type="button">Menu <span aria-hidden="true">☰</span></button><nav id="main-nav" class="main-nav" aria-label="Navigasi utama"><a href="index.html" ${file === 'index.html' ? 'aria-current="page"' : ''}>Beranda</a><a href="index.html#kalkulator" ${file.startsWith('kalkulator') ? 'class="active"' : ''}>Kalkulator</a><a href="tentang.html" ${file === 'tentang.html' ? 'aria-current="page"' : ''}>Tentang</a><a href="kalkulator-profit.html" class="button nav-cta">Hitung cuan ${arrow}</a></nav></div></header>
 ${breadcrumb}<main id="main">${content}</main><footer class="site-footer"><div class="wrap footer-top"><div class="footer-brand"><a href="index.html" class="brand">${logo}</a><p>Angka lebih jelas.<br>Keputusan jualan lebih tenang.</p><span class="footer-note">Dibuat untuk seller Indonesia.</span></div><div><h2>Kalkulator</h2>${calculators.slice(0,3).map(c=>`<a href="${url(c)}">${c.short}</a>`).join('')}</div><div><h2>Hitung lebih jauh</h2>${calculators.slice(3).map(c=>`<a href="${url(c)}">${c.short}</a>`).join('')}</div><div><h2>CuanSeller</h2><a href="tentang.html">Tentang kami</a><a href="privacy-policy.html">Kebijakan privasi</a><a href="disclaimer.html">Disclaimer</a></div></div><div class="wrap footer-bottom"><span>© ${new Date().getFullYear()} CuanSeller</span><span>Alat bantu hitung, bukan jaminan keuntungan.</span><a href="#main">Kembali ke atas ↑</a></div></footer></body></html>`;
-  const output = basePath === '/' ? html : html.replace(/((?:href|src)=")(?!(?:https?:|mailto:|data:|#|\/))([^"\s]+)/g, (_, attribute, target) => `${attribute}${publicPath(target)}`);
+  const output = html.replace(/((?:href|src)=")(?!(?:https?:|mailto:|data:|#|\/))([^"\s]+)/g, (_, attribute, target) => `${attribute}${publicPath(target)}`);
   await writeFile(new URL(file, root), output);
 }
 await mkdir(new URL('assets/', root), { recursive: true });
@@ -55,4 +56,5 @@ await page('disclaimer.html','Disclaimer CuanSeller — Asumsi & Batas Perhitung
 await writeFile(new URL('sitemap.xml', root), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map(p=>`  <url><loc>${domain || 'https://cuanseller.id'}/${p === 'index.html' ? '' : p}</loc></url>`).join('\n')}\n</urlset>\n`);
 await writeFile(new URL('robots.txt', root), `User-agent: *\nAllow: /\n\nSitemap: ${domain || 'https://cuanseller.id'}/sitemap.xml\n`);
 if (root !== sourceRoot) await writeFile(new URL('.nojekyll', root), '');
+if (process.env.CUSTOM_DOMAIN) await writeFile(new URL('CNAME', root), `${process.env.CUSTOM_DOMAIN}\n`);
 console.log(`Built ${pages.length} pages. ${domain ? `Production origin: ${domain}` : 'Domain not supplied: canonical omitted; sitemap origin assumes https://cuanseller.id. Configure SITE_URL before publishing.'}`);

@@ -33,23 +33,22 @@ npm run build:pages
 node scripts/audit-dist.mjs
 ```
 
-Folder final yang dipublikasikan adalah `dist/`. Isinya mencakup seluruh HTML, CSS, JavaScript browser, favicon, `robots.txt`, `sitemap.xml`, dan `.nojekyll`. Production build memakai base path `/cuanseller/`, termasuk untuk semua asset dan navigasi internal. Jangan mengunggah folder `scripts/`, `tests/`, atau file server lokal ke Pages.
+Folder final yang dipublikasikan adalah `dist/`. Isinya mencakup seluruh HTML, CSS, JavaScript browser, favicon, `robots.txt`, `sitemap.xml`, `CNAME`, dan `.nojekyll`. Production build memakai `https://profitjualan.my.id` dengan base path `/`, termasuk untuk semua asset dan navigasi internal. Jangan mengunggah folder `scripts/`, `tests/`, atau file server lokal ke Pages.
 
-Workflow `.github/workflows/deploy-pages.yml` membangun dan memublikasikan `dist/` setiap kali branch `main` diperbarui. Setelah project menjadi repository GitHub, buka **Settings → Pages**, lalu pilih **Source: GitHub Actions**. Workflow menghitung URL standar GitHub Pages dari pemilik dan nama repository, sehingga canonical, sitemap, dan robots mencakup subpath repository dengan benar.
+Workflow `.github/workflows/deploy-pages.yml` membangun dan memublikasikan `dist/` setiap kali branch `main` diperbarui. Setelah project menjadi repository GitHub, buka **Settings → Pages**, lalu pilih **Source: GitHub Actions**. Build menghasilkan canonical, Open Graph URL, structured data, sitemap, dan robots untuk custom domain serta menyertakan `CNAME` secara otomatis.
 
-Untuk custom domain, buat repository variable bernama `SITE_URL` dengan URL publik lengkap. Konfigurasi domain tersebut juga melalui **Settings → Pages**. Tanpa custom domain, tidak diperlukan variable tambahan.
+Pastikan custom domain `profitjualan.my.id` tercatat pada **Settings → Pages** dan DNS mengarah ke GitHub Pages.
 
 ## Domain produksi
 
-Build lokal memakai `https://cuanseller.id` sebagai URL default karena akun GitHub dan nama repository belum tersedia di workspace ini. Untuk membuat `dist/` dengan URL publik tertentu, gunakan:
+Konfigurasi produksi memakai `https://profitjualan.my.id` sebagai URL tetap dan root `/`:
 
-```powershell
-$env:SITE_URL = 'https://domain-anda.id'
+```sh
 npm run build:pages
 node scripts/audit-dist.mjs
 ```
 
-Saat workflow berjalan di GitHub tanpa `SITE_URL`, URL dibentuk otomatis menjadi `https://pemilik.github.io/nama-repository`. Build mengisi canonical unik, metadata URL, breadcrumb terstruktur, sitemap, dan robots sesuai URL tersebut.
+Build mengisi canonical unik, metadata URL, breadcrumb terstruktur, sitemap, robots, dan `CNAME` sesuai custom domain.
 
 ## Privasi
 

@@ -25,7 +25,7 @@ for(const file of files){
   for(const [,reference] of html.matchAll(/(?:href|src)="([^"]+)"/g)){
     if(/^(https?:|mailto:|data:)/.test(reference))continue;
     const [path,fragment]=reference.split('#');
-    const target=path?resolve(dirname(resolve(root,file)),path):resolve(root,file);
+    const target=path?(path.startsWith('/')?resolve(root,path.slice(1)):resolve(dirname(resolve(root,file)),path)):resolve(root,file);
     await access(target); links++;
     if(fragment){const targetHtml=await readFile(target,'utf8');assert.ok(targetHtml.includes(`id="${fragment}"`),`${file}: ${reference}`);}
   }
