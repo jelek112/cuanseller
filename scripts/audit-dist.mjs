@@ -17,8 +17,12 @@ for (const required of ['assets/style.css', 'assets/app.js', 'assets/math.js', '
 for (const file of htmlFiles) {
   const html = await readFile(resolve(root, file), 'utf8');
   const expectedURL = `${siteURL}/${file === 'index.html' ? '' : file}`;
-  assert.ok(html.includes(`<link rel="canonical" href="${expectedURL}">`), `${file}: canonical salah.`);
+  const canonicals = [...html.matchAll(/<link rel="canonical" href="([^"]+)">/g)];
+  assert.equal(canonicals.length, 1, `${file}: harus memiliki tepat satu canonical.`);
+  assert.equal(canonicals[0][1], expectedURL, `${file}: canonical salah.`);
   assert.ok(html.includes(`<meta property="og:url" content="${expectedURL}">`), `${file}: Open Graph URL salah.`);
+  assert.ok(!/href="\/index\.html(?:#|\")/.test(html), `${file}: link internal tidak boleh memperkenalkan duplikat /index.html.`);
+  assert.ok(!/<meta name="robots" content="[^"]*noindex/i.test(html), `${file}: halaman publik tidak boleh noindex.`);
   assert.ok(!html.includes('jelek112.github.io'), `${file}: URL GitHub Pages lama masih ada.`);
   for (const [, json] of html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)) {
     JSON.parse(json);
